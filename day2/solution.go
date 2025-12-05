@@ -19,7 +19,7 @@ type Intervals []Interval
 
 func (its Intervals) Contains(num int) bool {
 	i := sort.Search(
-		len(its),
+		len(its), 
 		func(i int) bool { return its[i][1] >= num },
 	)
 	// fmt.Println(num, i, len(its), its)
@@ -35,7 +35,7 @@ func Parse(filename string) Intervals {
 		panic(err.Error())
 	}
 	pairs := strings.Split(string(data), ",")
-
+	
 	result := []Interval{}
 	for _, pair := range pairs {
 		pair = strings.Trim(pair, "\n")
@@ -68,8 +68,8 @@ func atoi(val string) int {
 func GetNextSilly(number int, numberOfParts int) int {
 	num := strconv.Itoa(number)
 	// Check number of digits
-	if len(num)%numberOfParts != 0 {
-		silly := "1" + strings.Repeat("0", len(num)/numberOfParts)
+	if len(num) % numberOfParts != 0 {
+		silly := "1" + strings.Repeat("0", len(num) / numberOfParts)
 		return atoi(strings.Repeat(silly, numberOfParts))
 	}
 	// Spilit
@@ -85,14 +85,14 @@ func GetNextSilly(number int, numberOfParts int) int {
 	half = strconv.Itoa(n)
 	silly = atoi(strings.Repeat(half, 2))
 
-	// Make +1 to upper part
+	// Make +1 to upper part 
 	// Double it
 	return silly
 }
 
 func GetAllSillyNumberInInterval(it Interval, numberOfParts int) iter.Seq[int] {
-	return func(yield func(int) bool) {
-		cur := it[0] - 1
+	return func (yield func(int) bool)  {
+		cur := it[0]-1
 		cur = GetNextSilly(cur, numberOfParts)
 		for it.Contains(cur) {
 			if !yield(cur) {
@@ -116,7 +116,8 @@ func Part1(input Intervals) int {
 func Part2(input Intervals) int {
 	fmt.Println(input)
 	result := 0
-	seen := make([]bool, 10000000000)
+	maxSilly := input[len(input)-1][1]
+	seen := make([]bool, maxSilly+1)
 	// go from 1 to 100000
 	for i := 1; i < 1000000; i++ {
 		// repeat from 2 to 10 times
@@ -126,7 +127,7 @@ func Part2(input Intervals) int {
 				break
 			}
 			silly := atoi(s)
-			if seen[silly] {
+			if silly > maxSilly || seen[silly] {
 				continue
 			}
 			seen[silly] = true
@@ -139,3 +140,5 @@ func Part2(input Intervals) int {
 	}
 	return result
 }
+
+

@@ -47,15 +47,13 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	type args struct {
-	}
 	tests := []struct {
 		name     string
 		filename string
 		want     int
 	}{
 		{"Test", "test_input", 4174379265},
-		{"Real", "input", 0},
+		{"Real", "input", 48631958998},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
