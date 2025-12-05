@@ -6,9 +6,9 @@ import (
 
 func TestPart1(t *testing.T) {
 	tests := []struct {
-		name string
+		name     string
 		filename string
-		want int
+		want     int
 	}{
 		{"test", "test_input", 3},
 		{"input", "input", 1078},
@@ -24,9 +24,9 @@ func TestPart1(t *testing.T) {
 
 func TestPart2(t *testing.T) {
 	tests := []struct {
-		name string
+		name     string
 		filename string
-		want int
+		want     int
 	}{
 		{"test", "test_input", 6},
 		{"input", "input", 6412},

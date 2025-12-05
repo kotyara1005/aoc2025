@@ -21,13 +21,13 @@ func Parse(filename string) Input {
 		}
 		dir := 1
 		if v[0] == 'L' {
-			dir = -1	
+			dir = -1
 		}
 		val, err := strconv.Atoi(v[1:])
 		if err != nil {
 			panic(err.Error())
 		}
-		result = append(result, dir * val)
+		result = append(result, dir*val)
 	}
 	return result
 }
