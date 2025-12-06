@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/kotyara1005/aoc2025/utils"
 )
 
 type Interval [2]int
@@ -19,7 +21,7 @@ type Intervals []Interval
 
 func (its Intervals) Contains(num int) bool {
 	i := sort.Search(
-		len(its), 
+		len(its),
 		func(i int) bool { return its[i][1] >= num },
 	)
 	// fmt.Println(num, i, len(its), its)
@@ -35,7 +37,7 @@ func Parse(filename string) Intervals {
 		panic(err.Error())
 	}
 	pairs := strings.Split(string(data), ",")
-	
+
 	result := []Interval{}
 	for _, pair := range pairs {
 		pair = strings.Trim(pair, "\n")
@@ -57,42 +59,34 @@ func Parse(filename string) Intervals {
 	return result
 }
 
-func atoi(val string) int {
-	rv, err := strconv.Atoi(val)
-	if err != nil {
-		panic(err.Error())
-	}
-	return rv
-}
-
 func GetNextSilly(number int, numberOfParts int) int {
 	num := strconv.Itoa(number)
 	// Check number of digits
-	if len(num) % numberOfParts != 0 {
-		silly := "1" + strings.Repeat("0", len(num) / numberOfParts)
-		return atoi(strings.Repeat(silly, numberOfParts))
+	if len(num)%numberOfParts != 0 {
+		silly := "1" + strings.Repeat("0", len(num)/numberOfParts)
+		return utils.Atoi(strings.Repeat(silly, numberOfParts))
 	}
 	// Spilit
 	half := num[:len(num)/numberOfParts]
-	silly := atoi(strings.Repeat(half, numberOfParts))
+	silly := utils.Atoi(strings.Repeat(half, numberOfParts))
 	if silly > number {
 		return silly
 	}
 
-	n := atoi(string(half))
+	n := utils.Atoi(string(half))
 	n += 1
 
 	half = strconv.Itoa(n)
-	silly = atoi(strings.Repeat(half, 2))
+	silly = utils.Atoi(strings.Repeat(half, 2))
 
-	// Make +1 to upper part 
+	// Make +1 to upper part
 	// Double it
 	return silly
 }
 
 func GetAllSillyNumberInInterval(it Interval, numberOfParts int) iter.Seq[int] {
-	return func (yield func(int) bool)  {
-		cur := it[0]-1
+	return func(yield func(int) bool) {
+		cur := it[0] - 1
 		cur = GetNextSilly(cur, numberOfParts)
 		for it.Contains(cur) {
 			if !yield(cur) {
@@ -126,7 +120,7 @@ func Part2(input Intervals) int {
 			if len(s) > 10 {
 				break
 			}
-			silly := atoi(s)
+			silly := utils.Atoi(s)
 			if silly > maxSilly || seen[silly] {
 				continue
 			}
@@ -140,5 +134,3 @@ func Part2(input Intervals) int {
 	}
 	return result
 }
-
-
