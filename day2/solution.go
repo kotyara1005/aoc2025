@@ -11,38 +11,18 @@ import (
 	"github.com/kotyara1005/aoc2025/utils"
 )
 
-type Interval [2]int
-
-func (it Interval) Contains(num int) bool {
-	return it[0] <= num && num <= it[1]
-}
-
-type Intervals []Interval
-
-func (its Intervals) Contains(num int) bool {
-	i := sort.Search(
-		len(its),
-		func(i int) bool { return its[i][1] >= num },
-	)
-	// fmt.Println(num, i, len(its), its)
-	if i == len(its) {
-		return false
-	}
-	return its[i].Contains(num)
-}
-
-func Parse(filename string) Intervals {
+func Parse(filename string) utils.Intervals {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err.Error())
 	}
 	pairs := strings.Split(string(data), ",")
 
-	result := []Interval{}
+	result := []utils.Interval{}
 	for _, pair := range pairs {
 		pair = strings.Trim(pair, "\n")
 		nums := strings.Split(pair, "-")
-		it := Interval{0, 0}
+		it := utils.Interval{0, 0}
 		it[0], err = strconv.Atoi(nums[0])
 		if err != nil {
 			panic(err.Error())
@@ -84,7 +64,7 @@ func GetNextSilly(number int, numberOfParts int) int {
 	return silly
 }
 
-func GetAllSillyNumberInInterval(it Interval, numberOfParts int) iter.Seq[int] {
+func GetAllSillyNumberInInterval(it utils.Interval, numberOfParts int) iter.Seq[int] {
 	return func(yield func(int) bool) {
 		cur := it[0] - 1
 		cur = GetNextSilly(cur, numberOfParts)
@@ -97,7 +77,7 @@ func GetAllSillyNumberInInterval(it Interval, numberOfParts int) iter.Seq[int] {
 	}
 }
 
-func Part1(input Intervals) int {
+func Part1(input utils.Intervals) int {
 	result := 0
 	for _, it := range input {
 		for silly := range GetAllSillyNumberInInterval(it, 2) {
@@ -107,7 +87,7 @@ func Part1(input Intervals) int {
 	return result
 }
 
-func Part2(input Intervals) int {
+func Part2(input utils.Intervals) int {
 	fmt.Println(input)
 	result := 0
 	maxSilly := input[len(input)-1][1]
