@@ -1,6 +1,8 @@
 package utils
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func Atoi(val string) int {
 	rv, err := strconv.Atoi(val)
@@ -9,3 +11,4 @@ func Atoi(val string) int {
 	}
 	return rv
 }
+
