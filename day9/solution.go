@@ -78,14 +78,15 @@ func Part1(points []Point) int {
 			}
 		}
 	}
+	fmt.Println(result)
 	return result.Square()
 }
 
 type Boundaries struct {
 	Left   int
 	Right  int
-	Top    int
 	Bottom int
+	Top    int
 }
 
 func (bn Boundaries) Contains(point Point) bool {
@@ -134,6 +135,10 @@ func NewEdge(p1, p2 Point) Edge {
 	return Edge{p1, p2}
 }
 
+type Container interface {
+	Contains(Point) bool
+}
+
 type Polygon []Edge
 
 func (eds Polygon) Contains(point Point) bool {
@@ -154,6 +159,45 @@ func NewPolygonFromChain(points []Point) Polygon {
 	return pl
 }
 
+type FasterPolygon struct {
+	xmap map[int]Polygon
+	ymap map[int]Polygon
+}
+
+func (fp FasterPolygon) Contains(point Point) bool {
+	pl, ok := fp.xmap[point.X]
+	if ok && pl.Contains(point) {
+		return true
+	}
+	pl, ok = fp.ymap[point.Y]
+	if ok && pl.Contains(point) {
+		return true
+	}
+	return false
+}
+
+func (fp FasterPolygon) addEdge(edge Edge) {
+	p1, p2 := edge[0], edge[1]
+	if p1.X == p2.X {
+		fp.xmap[p1.X] = append(fp.xmap[p1.X], edge)
+	} else {
+		fp.ymap[p1.Y] = append(fp.ymap[p1.Y], edge)
+	}
+}
+
+func NewFasterPolygonFromChain(points []Point) FasterPolygon {
+	pl := FasterPolygon{
+		make(map[int]Polygon),
+		make(map[int]Polygon),
+	}
+	for p1, p2 := range itertools.WithPrev(slices.Values(points)) {
+		edge := NewEdge(p1, p2)
+		pl.addEdge(edge)
+	}
+	pl.addEdge(NewEdge(points[0], points[len(points)-1]))
+	return pl
+}
+
 func GetNeghbours(point Point) []Point {
 	return []Point{
 		{point.X + 1, point.Y},
@@ -163,7 +207,7 @@ func GetNeghbours(point Point) []Point {
 	}
 }
 
-func FloodFill(boundaries Boundaries, edges Polygon) map[Point]struct{} {
+func FloodFill(boundaries Boundaries, edges Container) map[Point]struct{} {
 	empty := sync.Map{}
 	isValid := func(p Point) bool {
 		return boundaries.Contains(p) && !edges.Contains(p)
@@ -179,16 +223,21 @@ func FloodFill(boundaries Boundaries, edges Polygon) map[Point]struct{} {
 		{boundaries.Right, boundaries.Bottom},
 		{boundaries.Right, boundaries.Top},
 	}
+	fmt.Println(startingPoints)
 
 	var processed int64 = 0
 	wg := sync.WaitGroup{}
 
-	bfs := func(start Point) {
+	bfs := func(i int, start Point) {
+		defer wg.Done()
 		q := []Point{start}
 		empty.Store(start, struct{}{})
 
 		for len(q) > 0 {
-			fmt.Println(len(q), atomic.LoadInt64(&processed))
+			tmp := atomic.LoadInt64(&processed)
+			if tmp % 100 == 0 {
+				fmt.Println(i, atomic.LoadInt64(&processed))
+			}
 			nextQ := []Point{}
 			for _, point := range q {
 				for _, neighbour := range GetNeghbours(point) {
@@ -202,12 +251,11 @@ func FloodFill(boundaries Boundaries, edges Polygon) map[Point]struct{} {
 			}
 			q = nextQ
 		}
-		wg.Done()
 	}
 
-	for _, point := range startingPoints {
+	for i, point := range startingPoints {
 		wg.Add(1)
-		go bfs(point)
+		go bfs(i, point)
 	}
 	wg.Wait()
 
@@ -215,7 +263,7 @@ func FloodFill(boundaries Boundaries, edges Polygon) map[Point]struct{} {
 
 	empty.Range(func(key, value any) bool {
 		result[key.(Point)] = struct{}{}
-		return false
+		return true
 	})
 	return result
 }
@@ -230,24 +278,38 @@ func CheckRectangleInPolygon(rec Rectangle, outside map[Point]struct{}) bool {
 	return true
 }
 
-// func PrintGrid(boundaries Boundaries, outside map[Point]struct{}) {
-// 	builder := strings.Builder{}
+func PrintGrid(boundaries Boundaries, outside map[Point]struct{}) {
+	builder := strings.Builder{}
 
-// 	for y := yMin; y <= yMax; y++ {
+	for y := boundaries.Bottom; y <= boundaries.Top; y++ {
+		for x := boundaries.Left; x <= boundaries.Right; x++ {
+			_, prs := outside[Point{x, y}]
+			r := 'X'
+			if prs {
+				r = '.'
+			}
+			builder.WriteRune(r)
+		}
+		builder.WriteRune('\n')
+	}
 
-// 	}
-
-// }
+	println(builder.String())
+}
 
 func Part2(points []Point) int {
 	// find boundaries
 	boundaries := NewBoundariesFromPoints(points)
 	fmt.Println(boundaries)
-	polygon := NewPolygonFromChain(points)
+	polygon := NewFasterPolygonFromChain(points)
 	// fill flood = bfs and bounce of the edges
 	outside := FloodFill(boundaries, polygon)
 
 	fmt.Println(len(outside))
+	// PrintGrid(boundaries, outside)
+
+	test := NewRectangle(Point{11, 1}, Point{2, 5})
+	fmt.Println(CheckRectangleInPolygon(test, outside))
+	// return 0
 	// check that edges of rectangle are in polygon
 	result := NewRectangle(Point{0, 0}, Point{0, 0})
 	for i, p1 := range points {
@@ -261,5 +323,7 @@ func Part2(points []Point) int {
 			}
 		}
 	}
+	fmt.Println(result, CheckRectangleInPolygon(result, outside))
+	fmt.Println(test, CheckRectangleInPolygon(test, outside))
 	return result.Square()
 }
