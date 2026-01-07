@@ -10,6 +10,8 @@ If this number is even point is outside else point is inside.
 
 ### The issue
 Since this is a grid problem it is likely that beam lays on an edge. 
+Due to this issue it is inposible to use `Even-odd` rule only to solve the problem.
+
 
 #### Example 1
 ```
@@ -41,17 +43,23 @@ Since this is a grid problem it is likely that beam lays on an edge.
 ## Flood-fill 
 Use BFS from an outside corner to find all outside space and then check if there is any inside of a rectangle.
 
+**TC:** O(max(X) * max(Y)) * O(CheckPointOnEdge)
+
 
 ## Compression
 
-Polygon in the problem contains big number like 10^5. Which makes grid as big as 10^10. 
+Coordinates of Polygon in the problem contains big number like 10^5. Which makes grid as big as 10^10. 
 But there are only 100 nodes in the polygon. That means that grid can be comperessed into a size of 100x100.
 Which is much smaller.
 
+If we apply compression to `Flood-fill` algorithm it changes time complexity dependancy from grid size to number of nodes in polygon.
+
+**TC:** O(N^2) * O(CheckPointOnEdge)
 
 ## Rectangle in Polygon rule
 To check that one polygon contains another we shoud check that all its nodes are inside the other and their edges neter crosses.
 
+**TC:** O(NumberOfRectangeles * 4 * NumberOfEdges) = O(N^4)
 
 
 
