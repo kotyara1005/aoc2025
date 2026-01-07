@@ -3,6 +3,7 @@ package day9
 import (
 	"cmp"
 	"fmt"
+	"maps"
 	"os"
 	"slices"
 	"strings"
@@ -219,9 +220,9 @@ func FloodFill(boundaries Boundaries, edges Container) map[Point]struct{} {
 
 	startingPoints := []Point{
 		{boundaries.Left, boundaries.Bottom},
-		{boundaries.Left, boundaries.Top},
-		{boundaries.Right, boundaries.Bottom},
-		{boundaries.Right, boundaries.Top},
+		// {boundaries.Left, boundaries.Top},
+		// {boundaries.Right, boundaries.Bottom},
+		// {boundaries.Right, boundaries.Top},
 	}
 	fmt.Println(startingPoints)
 
@@ -235,7 +236,7 @@ func FloodFill(boundaries Boundaries, edges Container) map[Point]struct{} {
 
 		for len(q) > 0 {
 			tmp := atomic.LoadInt64(&processed)
-			if tmp % 100 == 0 {
+			if tmp%100 == 0 {
 				fmt.Println(i, atomic.LoadInt64(&processed))
 			}
 			nextQ := []Point{}
@@ -278,6 +279,64 @@ func CheckRectangleInPolygon(rec Rectangle, outside map[Point]struct{}) bool {
 	return true
 }
 
+type Compressor struct {
+	mapX map[int]int
+	mapY map[int]int
+	xes  []int
+	yes  []int
+}
+
+func (comp *Compressor) DistanceX(x1, x2 int) int {
+	left := min(x1, x2)
+	right := max(x1, x2)
+	return comp.xes[right] - comp.xes[left] + 1
+}
+
+func (comp *Compressor) DistanceY(y1, y2 int) int {
+	left := min(y1, y2)
+	right := max(y1, y2)
+	return comp.yes[right] - comp.yes[left] + 1
+}
+
+func (comp *Compressor) Transform(point Point) Point {
+	return Point{comp.mapX[point.X], comp.mapY[point.Y]}
+}
+
+func (comp *Compressor) TransformAll(points []Point) []Point {
+	rv := []Point{}
+
+	for _, point := range points {
+		rv = append(rv, comp.Transform(point))
+	}
+	return rv
+}
+
+func NewCompressor(points []Point) *Compressor {
+	mapX := map[int]int{}
+	mapY := map[int]int{}
+
+	for _, point := range points {
+		mapX[point.X] = -1
+		mapY[point.Y] = -1
+	}
+
+	comp := &Compressor{
+		xes:  slices.Sorted(maps.Keys(mapX)),
+		yes:  slices.Sorted(maps.Keys(mapY)),
+		mapX: mapX,
+		mapY: mapY,
+	}
+
+	for newX, oldX := range comp.xes {
+		mapX[oldX] = newX
+	}
+
+	for newY, oldY := range comp.yes {
+		mapY[oldY] = newY
+	}
+	return comp
+}
+
 func PrintGrid(boundaries Boundaries, outside map[Point]struct{}) {
 	builder := strings.Builder{}
 
@@ -297,33 +356,22 @@ func PrintGrid(boundaries Boundaries, outside map[Point]struct{}) {
 }
 
 func Part2(points []Point) int {
-	// find boundaries
+	comp := NewCompressor(points)
+	points = comp.TransformAll(points)
 	boundaries := NewBoundariesFromPoints(points)
-	fmt.Println(boundaries)
 	polygon := NewFasterPolygonFromChain(points)
-	// fill flood = bfs and bounce of the edges
 	outside := FloodFill(boundaries, polygon)
 
-	fmt.Println(len(outside))
-	// PrintGrid(boundaries, outside)
-
-	test := NewRectangle(Point{11, 1}, Point{2, 5})
-	fmt.Println(CheckRectangleInPolygon(test, outside))
-	// return 0
-	// check that edges of rectangle are in polygon
-	result := NewRectangle(Point{0, 0}, Point{0, 0})
+	result := 0
 	for i, p1 := range points {
 		for _, p2 := range points[i+1:] {
 			loc := NewRectangle(p1, p2)
 			if !CheckRectangleInPolygon(loc, outside) {
 				continue
 			}
-			if loc.Square() > result.Square() {
-				result = loc
-			}
+			square := comp.DistanceX(loc.P1.X, loc.P2.X) * comp.DistanceY(loc.P1.Y, loc.P2.Y)
+			result = max(result, square)
 		}
 	}
-	fmt.Println(result, CheckRectangleInPolygon(result, outside))
-	fmt.Println(test, CheckRectangleInPolygon(test, outside))
-	return result.Square()
+	return result
 }

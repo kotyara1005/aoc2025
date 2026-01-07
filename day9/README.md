@@ -59,7 +59,7 @@ If we apply compression to `Flood-fill` algorithm it changes time complexity dep
 ## Rectangle in Polygon rule
 To check that one polygon contains another we shoud check that all its nodes are inside the other and their edges neter crosses.
 
-**TC:** O(NumberOfRectangeles * 4 * NumberOfEdges) = O(N^4)
+**TC:** O(NumberOfRectangeles * 4 * NumberOfEdges) = O(N^3)
 
 
 
