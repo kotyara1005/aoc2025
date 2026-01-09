@@ -220,9 +220,9 @@ func FloodFill(boundaries Boundaries, edges Container) map[Point]struct{} {
 
 	startingPoints := []Point{
 		{boundaries.Left, boundaries.Bottom},
-		// {boundaries.Left, boundaries.Top},
-		// {boundaries.Right, boundaries.Bottom},
-		// {boundaries.Right, boundaries.Top},
+		{boundaries.Left, boundaries.Top},
+		{boundaries.Right, boundaries.Bottom},
+		{boundaries.Right, boundaries.Top},
 	}
 	fmt.Println(startingPoints)
 
